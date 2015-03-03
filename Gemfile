@@ -10,11 +10,13 @@ group :development, :test do
 end
 
 group :test do
+	gem 'minitest', '~> 5.5.1'
 	gem 'selenium-webdriver', '2.35.1'
 	gem 'capybara', '2.1.0'
 end
 
 gem 'sass-rails', '~> 5.0'
+gem 'bcrypt-ruby', '3.1.2'
 gem 'uglifier', '>= 1.3.0'
 gem 'coffee-rails', '~> 4.1.0'
 gem 'jquery-rails'
