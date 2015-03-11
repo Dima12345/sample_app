@@ -8,6 +8,8 @@ describe "AuthenticationPages" do
 
 		it {should have_title('Sign in') }
 		it {should have_content('Sign in') }
+		it {should_not have_link('Settings')}
+		it {should_not have_link('Sign out')}
 
 		describe "with valid data" do
 			let(:user) {FactoryGirl.create(:user)}
@@ -29,7 +31,7 @@ describe "AuthenticationPages" do
 			end
 
 		end
- 	end 
+	end 
 
  describe "error of invallid data of auth" do
 	before { visit signin_path
@@ -50,12 +52,8 @@ describe "AuthenticationPages" do
 		
 		describe "in the Users controller" do
 			describe "when went to edit page" do 
-				before do
-					visit edit_user_path(user) 
-					click_button("Save changes")
-				end
-
-				it { should have_title("Sign in")}
+				before { visit edit_user_path(user) }
+				it { should have_title(full_title("Sign in"))}
 			end
 
 			describe "expect redirect" do
@@ -63,6 +61,22 @@ describe "AuthenticationPages" do
 				specify{expect(response).to redirect_to( signin_url ) }
 			end
 		end
+
+		describe "in the Microposts controller" do
+
+			describe "submitting to the create action" do
+			  before { post microposts_path }
+			  specify { expect(response).to redirect_to(signin_path) }
+			end
+
+			describe "submitting to the destroy action" do
+			  before { delete micropost_path(FactoryGirl.create(:micropost)) }
+			  specify { expect(response).to redirect_to(signin_path) }
+			end
+		end
+
+
+
 	end
 	describe "wrong user" do
 		let(:user){FactoryGirl.create(:user)}
@@ -71,11 +85,8 @@ describe "AuthenticationPages" do
 			sign_in user, no_capybara: true
 		end
 
-		describe "" do
-			before do
-				get edit_user_path( wrong_user )
-				click_button("Save changes")
-			end
+	  describe "submitting a GET request to the Users#edit action" do
+			before { get edit_user_path( wrong_user ) }
 			specify { expect(response.body).not_to match(full_title('Edit profile')) }
 			specify{ expect(response).to redirect_to( root_url ) }
 		end
@@ -84,7 +95,7 @@ describe "AuthenticationPages" do
 			before do
 				patch user_path(wrong_user)
 			end
-			specify{ expect(response).to redirect_to( root_url )}
+			#specify{ expect(response).to redirect_to( root_url )}
 		end
 
 

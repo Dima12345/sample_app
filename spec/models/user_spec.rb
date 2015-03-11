@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe User do
 	before{ @user = User.new(name: "Example User", email: "user@example.com",
-                     password: "sfoobar", password_confirmation: "sfoobar") }
+					 password: "sfoobar", password_confirmation: "sfoobar") }
 
 	subject{ @user }
 
@@ -13,6 +13,8 @@ describe User do
 	it{ should respond_to(:password_confirmation) }
 	it{ should respond_to(:authenticate) }
 	it{ should respond_to(:remember_token) }
+	it{ should respond_to(:admin)}
+	it{ should respond_to(:microposts)}
 
 	it{ should be_valid }
 	
@@ -61,13 +63,13 @@ describe User do
 
 	describe "pass_is_null" do
 		before { @user = User.new(name: "Example User", email: "user@example.com",
-                       password: " ", password_confirmation: " ") }
-    	it { should_not be_valid }
+					   password: " ", password_confirmation: " ") }
+		it { should_not be_valid }
 	end
 
 	describe "when password doesn't match confirmation" do
-	    before { @user.password_confirmation = "mismatch" }
-	    it { should_not be_valid }
+		before { @user.password_confirmation = "mismatch" }
+		it { should_not be_valid }
 	end
 
 	describe "it`s pass is short?" do
@@ -91,30 +93,49 @@ describe User do
 
 	end
 
-
-
-
 	#describe "register of email" do
 	#	let(:user_email_downcase){ @user.reload.email }
 	#	before { user_email_downcase eq @user.email.downcase }
 	#	it{ should be_valide }
 	#end
 
-	 describe "email address with mixed case" do
-	    let(:mixed_case_email) { "Foo@ExAMPle.CoM" }
+	describe "email address with mixed case" do
+		let(:mixed_case_email) { "Foo@ExAMPle.CoM" }
 
-	    it "should be saved as all lower-case" do
-	      @user.email = mixed_case_email
-	      @user.save
-	      expect(@user.reload.email).to eq mixed_case_email.downcase
-	    end
+		it "should be saved as all lower-case" do
+		  @user.email = mixed_case_email
+		  @user.save
+		  expect(@user.reload.email).to eq mixed_case_email.downcase
+		end
 	  end
 	describe "remember_token" do
 		before { @user.save }
 		its(:remember_token){should_not be_blank}
 	end
 
+	describe "micropost associations" do
 
+		before { @user.save }
+		let!(:older_micropost) do
+			FactoryGirl.create(:micropost, user: @user, created_at: 1.day.ago)
+		end
+		let!(:newer_micropost) do
+			FactoryGirl.create(:micropost, user: @user, created_at: 1.hour.ago)
+		end
+
+		it "should have the right microposts in the right order" do
+			expect(@user.microposts.to_a).to eq [newer_micropost, older_micropost]
+		end
+
+		it "should destroy associated microposts" do
+			microposts = @user.microposts.to_a
+			@user.destroy
+			expect(microposts).not_to be_empty
+			microposts.each do |micropost|
+				expect(Micropost.where(id: micropost.id)).to be_empty
+			end
+		end
+	end
 
 
 

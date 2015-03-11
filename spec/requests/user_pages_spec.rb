@@ -50,9 +50,8 @@ describe "User pages" do
 
 			describe "after saving" do
 				before { click_button submit }
-				let (:user){ User.find(1) }
-
-				it { should have_title( user.name )}
+				let (:user){ User.find_by(email: "user@example.com")}
+				it { should have_title( user.name ) }
 				it { should have_link("Sign out")}
 				it { should_not have_selector('div.alert.alert-success' , text: "Darova")}
 			end
@@ -82,8 +81,8 @@ describe "User pages" do
 		end
 
 		describe "edit valid info of user" do 
-			let(:user_test_name){"Vasyan"}
-			let(:user_test_email){"Exemple@example.com"}
+			let(:user_test_name){"Example_User"}
+			let(:user_test_email){"user@example.com"}
 			
 			before do
 				fill_in "Name", with: user_test_name
@@ -98,6 +97,23 @@ describe "User pages" do
 			it { should have_link("Sign out", href: signout_path) }
 			specify { expect(user.reload.name).to eq user_test_name }
 			specify { expect(user.reload.email).to eq user_test_email.downcase }
+		end
+	end
+
+	describe "profile page microposts" do
+		let(:user) { FactoryGirl.create(:user) }
+		let!(:m1) { FactoryGirl.create(:micropost, user: user, content: "Foo") }
+		let!(:m2) { FactoryGirl.create(:micropost, user: user, content: "Bar") }
+
+		before { visit user_path(user) }
+
+		it { should have_content(user.name) }
+		it { should have_title(user.name) }
+
+		describe "microposts" do
+		  it { should have_content(m1.content) }
+		  it { should have_content(m2.content) }
+		  it { should have_content(user.microposts.count) }
 		end
 	end
 end
